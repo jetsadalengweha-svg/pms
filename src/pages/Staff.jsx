@@ -1,18 +1,1 @@
-export default function Staff() {
-  return (
-    
-
-      
-
-        Staff
-      
-
-      
-
-กำลังพัฒนา...
-
-
-    
-
-  )
-}
+export default function Staff(){return <div><h1>Staff</h1><p>Coming soon</p></div>}

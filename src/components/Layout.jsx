@@ -1,19 +1,15 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
-const ROLE_LABEL = {
-  admin:'ผู้ดูแลระบบ', pharmacist:'เภสัชกร',
-  manager:'ผู้จัดการ', staff:'พนักงานขาย',
-}
 const NAV = [
-  { to:'/stock',     icon:'🧪', label:'สต๊อกยา',       roles:['admin','pharmacist','manager','staff'] },
-  { to:'/pos',       icon:'🛒', label:'ขายยา (POS)',   roles:['admin','pharmacist','manager','staff'] },
-  { to:'/purchase',  icon:'🚚', label:'จัดซื้อ',       roles:['admin','pharmacist','manager'] },
-  { to:'/reports',   icon:'📋', label:'รายงาน ขย.',    roles:['admin','pharmacist'] },
-  { to:'/customers', icon:'👤', label:'ลูกค้า (CRM)',  roles:['admin','pharmacist','manager','staff'] },
-  { to:'/patients',  icon:'🩺', label:'ติดตามผู้ป่วย', roles:['admin','pharmacist','manager'] },
-  { to:'/staff',     icon:'👔', label:'พนักงาน',       roles:['admin','manager'] },
-  { to:'/analytics', icon:'📊', label:'รายงานธุรกิจ',  roles:['admin','manager'] },
+  { to:'/stock',     label:'สต๊อกยา',       roles:['admin','pharmacist','manager','staff'] },
+  { to:'/pos',       label:'ขายยา (POS)',    roles:['admin','pharmacist','manager','staff'] },
+  { to:'/purchase',  label:'จัดซื้อ',        roles:['admin','pharmacist','manager'] },
+  { to:'/reports',   label:'รายงาน',         roles:['admin','pharmacist'] },
+  { to:'/customers', label:'ลูกค้า',         roles:['admin','pharmacist','manager','staff'] },
+  { to:'/patients',  label:'ติดตามผู้ป่วย',  roles:['admin','pharmacist','manager'] },
+  { to:'/staff',     label:'พนักงาน',        roles:['admin','manager'] },
+  { to:'/analytics', label:'รายงานธุรกิจ',   roles:['admin','manager'] },
 ]
 
 export default function Layout() {
@@ -22,57 +18,32 @@ export default function Layout() {
   const nav = NAV.filter(n => n.roles.includes(role))
 
   return (
-    
-
-      
-
-        
-
-          
-💊 PMS
-
-          
-ระบบบริหารร้านขายยา
-
-        
-
-        
-
+    <div style={{ display:'flex', minHeight:'100vh' }}>
+      <div style={{ width:200, background:'#0f172a', padding:16, display:'flex', flexDirection:'column' }}>
+        <div style={{ color:'#fff', fontWeight:700, marginBottom:24 }}>PMS ร้านขายยา</div>
+        <nav>
           {nav.map(n => (
-            ({
-              display:'flex',alignItems:'center',gap:10,
-              padding:'9px 12px',borderRadius:7,marginBottom:2,
-              textDecoration:'none',fontSize:13,fontWeight:500,
-              background:isActive?'#0f766e':'transparent',
-              color:isActive?'#fff':'#94a3b8',
+            <NavLink key={n.to} to={n.to} style={({ isActive }) => ({
+              display:'block', padding:'8px 12px', borderRadius:6, marginBottom:2,
+              textDecoration:'none', fontSize:13,
+              background: isActive ? '#0f766e' : 'transparent',
+              color: isActive ? '#fff' : '#94a3b8',
             })}>
-              {n.icon}{n.label}
-            
+              {n.label}
+            </NavLink>
           ))}
-        
-
-        
-
-          
-{profile?.full_name||'ผู้ใช้งาน'}
-
-          
-{ROLE_LABEL[role]||role}
-
-          {await signOut();navigate('/login')}} style={{
-            width:'100%',padding:'7px',borderRadius:6,border:'none',
-            background:'#1e293b',color:'#94a3b8',cursor:'pointer',fontSize:12,
-          }}>🚪 ออกจากระบบ
-        
-
-      
-
-      
-
-        
-      
-
-    
-
+        </nav>
+        <div style={{ marginTop:'auto', color:'#94a3b8', fontSize:12 }}>
+          <div>{profile?.full_name || 'ผู้ใช้งาน'}</div>
+          <button onClick={async () => { await signOut(); navigate('/login') }}
+            style={{ marginTop:8, width:'100%', padding:7, borderRadius:6, border:'none', background:'#1e293b', color:'#94a3b8', cursor:'pointer' }}>
+            ออกจากระบบ
+          </button>
+        </div>
+      </div>
+      <div style={{ flex:1, padding:24 }}>
+        <Outlet />
+      </div>
+    </div>
   )
 }

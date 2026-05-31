@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signIn  = async (email, pw) => {
+  const signIn = async (email, pw) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw })
     if (error) throw error
   }
@@ -40,14 +40,14 @@ export function AuthProvider({ children }) {
   const can = (roles) => roles.includes(role)
 
   return (
-    
+    <AuthContext.Provider value={{ user, profile, role, signIn, signOut, can }}>
       {!loading && children}
-    
+    </AuthContext.Provider>
   )
 }
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth ต้องใช้ภายใน AuthProvider')
+  if (!ctx) throw new Error('useAuth must be inside AuthProvider')
   return ctx
 }

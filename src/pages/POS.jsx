@@ -1,18 +1,1 @@
-export default function POS() {
-  return (
-    
-
-      
-
-        POS
-      
-
-      
-
-กำลังพัฒนา...
-
-
-    
-
-  )
-}
+export default function POS(){return <div><h1>POS</h1><p>Coming soon</p></div>}

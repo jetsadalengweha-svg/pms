@@ -1,18 +1,1 @@
-export default function Purchase() {
-  return (
-    
-
-      
-
-        Purchase
-      
-
-      
-
-กำลังพัฒนา...
-
-
-    
-
-  )
-}
+export default function Purchase(){return <div><h1>Purchase</h1><p>Coming soon</p></div>}

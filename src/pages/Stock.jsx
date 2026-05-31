@@ -1,18 +1,1 @@
-export default function Stock() {
-  return (
-    
-
-      
-
-        Stock
-      
-
-      
-
-กำลังพัฒนา...
-
-
-    
-
-  )
-}
+export default function Stock(){return <div><h1>Stock</h1><p>Coming soon</p></div>}

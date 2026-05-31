@@ -1,18 +1,1 @@
-export default function Customers() {
-  return (
-    
-
-      
-
-        Customers
-      
-
-      
-
-กำลังพัฒนา...
-
-
-    
-
-  )
-}
+export default function Customers(){return <div><h1>Customers</h1><p>Coming soon</p></div>}
