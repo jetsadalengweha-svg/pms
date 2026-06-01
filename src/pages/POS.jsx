@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 export default function POS() {
   const { profile } = useAuth()
@@ -9,6 +11,7 @@ export default function POS() {
   const [search, setSearch] = useState('')
   const [paid, setPaid] = useState('')
   const [loading, setLoading] = useState(false)
+  const [lastSale, setLastSale] = useState(null)
 
   useEffect(() => { fetchDrugs() }, [])
 
@@ -27,12 +30,48 @@ export default function POS() {
   }
 
   const removeFromCart = (id) => setCart(cart.filter(c => c.id !== id))
+  const updateQty = (id, qty) => {
+    if (qty <= 0) return removeFromCart(id)
+    setCart(cart.map(c => c.id === id ? {...c, qty} : c))
+  }
 
   const total = cart.reduce((sum, c) => sum + (c.price_sell * c.qty), 0)
   const change = paid ? Number(paid) - total : 0
 
+  const printReceipt = (sale, items) => {
+    const doc = new jsPDF({ unit:'mm', format:[80, 200] })
+    doc.setFont('helvetica')
+    doc.setFontSize(14)
+    doc.text('PMS PHARMACY', 40, 10, { align:'center' })
+    doc.setFontSize(9)
+    doc.text('ใบเสร็จรับเงิน', 40, 16, { align:'center' })
+    doc.text(`วันที่: ${new Date().toLocaleString('th-TH')}`, 5, 22)
+    doc.text(`เลขที่: ${sale.id.slice(0,8).toUpperCase()}`, 5, 27)
+    doc.line(5, 30, 75, 30)
+
+    autoTable(doc, {
+      startY: 32,
+      head: [['รายการ','จำนวน','ราคา','รวม']],
+      body: items.map(i => [i.name, i.qty, i.price_sell, i.price_sell * i.qty]),
+      styles: { fontSize: 8, cellPadding: 1 },
+      headStyles: { fillColor: [15, 118, 110] },
+      margin: { left: 5, right: 5 },
+    })
+
+    const y = doc.lastAutoTable.finalY + 5
+    doc.setFontSize(10)
+    doc.text(`รวม: ${total.toLocaleString()} บ.`, 75, y, { align:'right' })
+    doc.text(`รับเงิน: ${Number(paid).toLocaleString()} บ.`, 75, y+6, { align:'right' })
+    doc.text(`ทอน: ${change.toLocaleString()} บ.`, 75, y+12, { align:'right' })
+    doc.line(5, y+16, 75, y+16)
+    doc.setFontSize(9)
+    doc.text('ขอบคุณที่ใช้บริการ', 40, y+22, { align:'center' })
+
+    doc.save(`receipt-${sale.id.slice(0,8)}.pdf`)
+  }
+
   const handleCheckout = async () => {
-    if (cart.length === 0) return
+    if (cart.length === 0 || !paid) return
     setLoading(true)
     const { data: sale } = await supabase.from('sales').insert([{
       total, paid: Number(paid), staff_id: profile?.id
@@ -51,11 +90,11 @@ export default function POS() {
           stock_qty: c.stock_qty - c.qty
         }).eq('id', c.id)
       }
+      printReceipt(sale, cart)
     }
     setCart([])
     setPaid('')
     setLoading(false)
-    alert('ชำระเงินสำเร็จ!')
     fetchDrugs()
   }
 
@@ -91,14 +130,19 @@ export default function POS() {
           {cart.length === 0 && <p style={{ color:'#94a3b8', textAlign:'center', marginTop:40 }}>ยังไม่มีรายการ</p>}
           {cart.map(c => (
             <div key={c.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:'1px solid #f1f5f9' }}>
-              <div>
+              <div style={{ flex:1 }}>
                 <div style={{ fontSize:14, fontWeight:500 }}>{c.name}</div>
-                <div style={{ fontSize:12, color:'#64748b' }}>{c.price_sell?.toLocaleString()} x {c.qty}</div>
+                <div style={{ fontSize:12, color:'#64748b' }}>{c.price_sell?.toLocaleString()} บ./ชิ้น</div>
               </div>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontWeight:600 }}>{(c.price_sell * c.qty).toLocaleString()}</span>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <button onClick={() => updateQty(c.id, c.qty - 1)}
+                  style={{ width:24, height:24, background:'#e2e8f0', border:'none', borderRadius:4, cursor:'pointer', fontWeight:700 }}>-</button>
+                <span style={{ width:24, textAlign:'center', fontWeight:600 }}>{c.qty}</span>
+                <button onClick={() => updateQty(c.id, c.qty + 1)}
+                  style={{ width:24, height:24, background:'#e2e8f0', border:'none', borderRadius:4, cursor:'pointer', fontWeight:700 }}>+</button>
+                <span style={{ marginLeft:4, fontWeight:600, minWidth:50, textAlign:'right' }}>{(c.price_sell * c.qty).toLocaleString()}</span>
                 <button onClick={() => removeFromCart(c.id)}
-                  style={{ background:'#fee2e2', color:'#ef4444', border:'none', borderRadius:4, padding:'2px 6px', cursor:'pointer' }}>x</button>
+                  style={{ background:'#fee2e2', color:'#ef4444', border:'none', borderRadius:4, padding:'2px 6px', cursor:'pointer', marginLeft:4 }}>x</button>
               </div>
             </div>
           ))}
@@ -111,12 +155,15 @@ export default function POS() {
           <input placeholder="รับเงิน..."
             type="number" value={paid} onChange={e => setPaid(e.target.value)}
             style={{ width:'100%', padding:'8px 12px', borderRadius:7, border:'1px solid #e2e8f0', marginBottom:8, fontFamily:'inherit', fontSize:16 }} />
-          {paid && <div style={{ textAlign:'right', color:'#0f766e', marginBottom:8 }}>เงินทอน: {change.toLocaleString()} บ.</div>}
-          <button onClick={handleCheckout} disabled={loading || cart.length === 0 || !paid}
-            style={{ width:'100%', padding:12, background: cart.length === 0 || !paid ? '#e2e8f0' : '#0f766e',
-              color: cart.length === 0 || !paid ? '#94a3b8' : '#fff',
+          {paid && <div style={{ textAlign:'right', color: change >= 0 ? '#0f766e' : '#ef4444', marginBottom:8 }}>
+            เงินทอน: {change.toLocaleString()} บ.
+          </div>}
+          <button onClick={handleCheckout} disabled={loading || cart.length === 0 || !paid || change < 0}
+            style={{ width:'100%', padding:12,
+              background: cart.length === 0 || !paid || change < 0 ? '#e2e8f0' : '#0f766e',
+              color: cart.length === 0 || !paid || change < 0 ? '#94a3b8' : '#fff',
               border:'none', borderRadius:7, cursor:'pointer', fontFamily:'inherit', fontSize:16, fontWeight:600 }}>
-            {loading ? 'กำลังบันทึก...' : 'ชำระเงิน'}
+            {loading ? 'กำลังบันทึก...' : 'ชำระเงิน + พิมพ์ใบเสร็จ'}
           </button>
         </div>
       </div>
