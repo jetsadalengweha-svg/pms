@@ -43,7 +43,7 @@ uom_config: [{ unit:‘แผง’, factor:10 }, { unit:‘กล่อง’, 
 const [loading, setLoading] = useState(false)
 const [err, setErr] = useState(’’)
 
-const set = (k, v) => setForm(p => ({ …p, [k]: v }))
+const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
 const handleSubmit = async () => {
 if (!form.trade_name || !form.generic_name) return setErr(‘กรุณากรอกชื่อยาให้ครบ’)
@@ -127,13 +127,13 @@ const [err, setErr] = useState(’’)
 
 const uomOptions = [
 { label: drug.base_unit, value: ‘base’, factor: 1 },
-…((typeof drug.uom_config === ‘string’
+...((typeof drug.uom_config === ‘string’
 ? JSON.parse(drug.uom_config || ‘[]’)
 : drug.uom_config || [])
 .map(u => ({ label: u.unit, value: u.unit, factor: u.factor })))
 ]
 
-const set = (k, v) => setForm(p => ({ …p, [k]: v }))
+const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
 const handleSubmit = async () => {
 if (!form.lot_number || !form.expiry_date || !form.qty || !form.cost_price)
@@ -250,7 +250,7 @@ return (
 </thead>
 <tbody>
 {lots.length === 0 ? (
-<tr><td colSpan={5} style={{ …S.td, color:’#94a3b8’, textAlign:‘center’ }}>ยังไม่มี Lot</td></tr>
+<tr><td colSpan={5} style={{ ...S.td, color:’#94a3b8’, textAlign:‘center’ }}>ยังไม่มี Lot</td></tr>
 ) : lots.map(lot => {
 const st = getLotStatus(lot)
 return (
