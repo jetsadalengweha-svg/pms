@@ -31,6 +31,7 @@ err:     { background:’#fee2e2’, border:‘1px solid #fca5a5’, borderRadiu
 }
 
 const CATEGORIES = [‘general’,‘ขย.10’,‘ขย.11’,‘ขย.12’]
+const UNITS = ['เม็ด','แคป','ml','ขวด','แผง','กรัม','หลอด','ลูก']
 
 // ── Modal: เพิ่มยาใหม่ ─────────────────────────────────
 function AddDrugModal({ onClose, onSaved }) {
@@ -88,9 +89,10 @@ return (
 </select>
 </div>
 <div style={S.col}>
-<div style={S.label}>หน่วยนับพื้นฐาน</div>
-<input style={S.inp} value={form.base_unit} onChange={e=>set(‘base_unit’,e.target.value)} placeholder=“เม็ด / ml / ขวด” />
-</div>
+  <div style={S.label}>หน่วยนับพื้นฐาน *</div>
+  <select style={S.inp} value={form.base_unit} onChange={e=>set('base_unit',e.target.value)}>
+    {UNITS.map(u=><option key={u} value={u}>{u}</option>)}
+  </select>
 </div>
 <div style={S.row}>
 <div style={S.col}>
